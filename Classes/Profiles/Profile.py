@@ -15,7 +15,7 @@ from discord import (
     Message
 )
 from UI.Common.CloseMessageView import CloseMessageView
-from UI.Profiles import AdditionalImageCaptionModal
+from UI.Profiles import AdditionalImageCaptionModal, ProfilePreView
 from Utilities import (
     Utilities as U,
     FroggeColor,
@@ -136,6 +136,12 @@ class Profile:
             return self._details.color
         
         return FroggeColor.embed_background()
+    
+################################################################################
+    @property
+    def aboutme(self) -> Optional[str]:
+        
+        return self._personality.aboutme
     
 ################################################################################
     async def set_details(self, interaction: Interaction) -> None:
@@ -282,7 +288,7 @@ class Profile:
             char_name = f"{BotEmojis.Envelope}  {char_name}  {BotEmojis.Envelope}"
 
         description = "** **"
-        if jobs is not NS:
+        if jobs is not None:
             description = (
                 f"{U.draw_line(text=jobs)}\n"
                 f"{jobs}\n"
@@ -361,4 +367,23 @@ class Profile:
             timestamp=True
         )
 
+################################################################################
+    async def preview(self, interaction: Interaction) -> None:
+
+        prompt = U.make_embed(
+            color=self.color,
+            title="Preview Profile",
+            description=(
+                "Select the button below corresponding to the section\n"
+                "of your profile you would like to preview."
+            ),
+            timestamp=False
+        )
+        view = ProfilePreView(interaction.user, self)
+
+        await interaction.response.send_message(embed=prompt, view=view)
+        await view.wait()
+
+        return
+        
 ################################################################################
