@@ -9,6 +9,7 @@ from discord import (
     SlashCommandOptionType,
 )
 
+from Classes.Profiles.ProfileHelp import ProfileHelp
 from Utilities import ImageType
 
 if TYPE_CHECKING:
@@ -146,6 +147,50 @@ class Profiles(Cog):
 
         return
 
+################################################################################
+    @profiles.command(
+        name="help",
+        description="Get help with the profile creation process."
+    )
+    async def profile_help(self, ctx: ApplicationContext) -> None:
+
+        await ProfileHelp.menu(ctx.interaction)
+        
+################################################################################
+    @profiles.command(
+        name="export",
+        description="Export your profile to import in another server."
+    )
+    async def profile_export(self, ctx: ApplicationContext) -> None:
+
+        profile = self.bot[ctx.guild_id].get_profile(ctx.user)
+        await profile.export(ctx.interaction)
+        
+################################################################################
+    @profiles.command(
+        name="import",
+        description="Import a profile from another server."
+    )
+    async def profile_import(
+        self,
+        ctx: ApplicationContext,
+        data: Option(
+            SlashCommandOptionType.attachment,
+            name="profile",
+            description="The profile.json file to import.",
+            required=True
+        ),
+        channel: Option(
+            SlashCommandOptionType.channel,
+            name="channel",
+            description="The channel to post the imported profile in.",
+            required=True
+        )
+    ) -> None:
+
+        profile_manager = self.bot[ctx.guild_id].profile_manager
+        await profile_manager.import_profile(ctx.interaction, data, channel)
+        
 ################################################################################
 def setup(bot: "FroggeBot") -> None:
 

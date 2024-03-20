@@ -1,9 +1,10 @@
 from __future__ import annotations
-
-from discord import User
+import json
+from discord import User, Interaction, Attachment, TextChannel
 from typing import TYPE_CHECKING, List, Optional, Any, Tuple, Dict
 
 from .Profile import Profile
+from Utilities import InvalidFileTypeError, CorruptedFileError, InvalidOperationError
 
 if TYPE_CHECKING:
     from Classes import GuildData, FroggeBot
@@ -67,6 +68,34 @@ class ProfileManager:
         self._profiles.append(profile)
         
         return profile
+    
+################################################################################
+    async def import_profile(self, interaction: Interaction, data: Attachment, channel: TextChannel) -> None:
+        
+        if not data.filename == "profile.json":
+            error = InvalidFileTypeError("profile.json")
+            await interaction.respond(embed=error, ephemeral=True)
+            return
+        
+        try:
+            payload = json.loads(await data.read())
+        except json.JSONDecodeError:
+            error = CorruptedFileError("profile.json")
+            await interaction.respond(embed=error, ephemeral=True)
+            return
+        
+        if payload["guild_id"] == self.guild_id:
+            error = InvalidOperationError("Importing a profile into the same server")
+            await interaction.respond(embed=error, ephemeral=True)
+            return
+        
+        await interaction.response.defer()
+        
+        profile = Profile.from_dict(self, interaction.user, payload)
+        profile.update_all()
+        self._profiles.append(profile)
+        
+        await profile.post(interaction, channel)        
     
 ################################################################################
     

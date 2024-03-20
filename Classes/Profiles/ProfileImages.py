@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Tuple
+from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Tuple, Dict
 
 from discord import Interaction, Embed, EmbedField
 from discord.ext.pages import Page
@@ -61,6 +61,26 @@ class ProfileImages(ProfileSection):
         self._additional = [
             AdditionalImage(parent=self, _id=i[0], url=i[2], caption=i[3])
             for i in additional
+        ]
+
+        return self
+    
+################################################################################
+    @classmethod
+    def from_dict(cls: Type[PI], parent: Profile, data: Dict[str, Any]) -> PI:
+        
+        self: PI = cls.__new__(cls)
+        
+        self._parent = parent
+        
+        self._thumbnail = data["thumbnail"]
+        self._main_image = data["main_image"]
+        self._additional = [
+            AdditionalImage.new(
+                parent=self, 
+                url=i["url"],
+                caption=i["caption"]
+            ) for i in data["additional"]
         ]
 
         return self
@@ -345,3 +365,13 @@ class ProfileImages(ProfileSection):
         )
 
 ################################################################################
+    def _to_dict(self) -> Dict[str, Any]:
+        
+        return {
+            "thumbnail": self._thumbnail,
+            "main_image": self._main_image,
+            "additional": [i.to_dict() for i in self._additional]
+        }
+    
+################################################################################
+    

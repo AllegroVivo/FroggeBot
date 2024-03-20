@@ -1,25 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .Branch import DBWorkerBranch
 
 if TYPE_CHECKING:
     from Classes import (
-        Position, 
-        Requirement, 
-        TUser,
-        Availability, 
-        Qualification, 
-        Training,
-        SignUpMessage,
         ProfilePersonality,
         ProfileImages,
         ProfileDetails,
         ProfileAtAGlance,
         AdditionalImage,
-        UserConfiguration,
-        UserDetails,
     )
 ################################################################################
 

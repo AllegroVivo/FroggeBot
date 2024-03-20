@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any, Dict
 
 from discord import Interaction
 from discord.ext.pages import Page
@@ -38,7 +38,7 @@ class AdditionalImage:
     def new(cls, parent: ProfileImages, url: str, caption: Optional[str]) -> AdditionalImage:
         
         new_id = parent.parent.bot.database.insert.addl_image(parent.parent.id, url, caption)
-        return cls(parent=parent, id=new_id, url=url, caption=caption)
+        return cls(parent=parent, _id=new_id, url=url, caption=caption)
     
 ################################################################################
     def __eq__(self, other: AdditionalImage) -> bool:
@@ -116,4 +116,13 @@ class AdditionalImage:
         
         self.caption = modal.value
         
+################################################################################
+    def to_dict(self) -> Dict[str, Any]:
+        
+        return {
+            "id": self.id,
+            "url": self.url,
+            "caption": self.caption
+        }
+    
 ################################################################################

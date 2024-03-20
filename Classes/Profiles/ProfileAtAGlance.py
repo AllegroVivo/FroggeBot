@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import TYPE_CHECKING, List, Optional, Union, Type, TypeVar, Any, Tuple
+from typing import TYPE_CHECKING, List, Optional, Union, Type, TypeVar, Any, Tuple, Dict
 
 from discord import Interaction, Embed, EmbedField
 
@@ -89,6 +89,31 @@ class ProfileAtAGlance(ProfileSection):
             height=data[5],
             age=data[6],
             mare=data[7]
+        )
+    
+################################################################################
+    @classmethod
+    def from_dict(cls: Type[AAG], parent: Profile, data: Dict[str, Any]) -> AAG:
+        
+        gender = Gender(data["gender"]) if isinstance(data["gender"], int) else data["gender"]
+        race = Race(data["race"]) if isinstance(data["race"], int) else data["race"]
+        clan = Clan(data["clan"]) if isinstance(data["clan"], int) else data["clan"]
+        orientation = (
+            Orientation(data["orientation"])
+            if isinstance(data["orientation"], int)
+            else data["orientation"]
+        )
+         
+        return cls(
+            parent=parent,
+            gender=gender,
+            pronouns=[Pronoun(p) for p in data["pronouns"]],
+            race=race,
+            clan=clan,
+            orientation=orientation,
+            height=data["height"],
+            age=data["age"],
+            mare=data["mare"]
         )
     
 ################################################################################
@@ -455,7 +480,7 @@ class ProfileAtAGlance(ProfileSection):
         )
 
         if ret:
-            ret += U.draw_line(extra=15)
+            ret += U.draw_line(extra=14)
 
         return ret
 
@@ -542,4 +567,18 @@ class ProfileAtAGlance(ProfileSection):
 
         return f"__Mare ID:__ `{self.mare}`\n"
 
+################################################################################
+    def _to_dict(self) -> Dict[str, Any]:
+                
+        return {
+            "gender": self.gender.value if isinstance(self.gender, Gender) else self.gender,
+            "pronouns": [p.value for p in self.pronouns],
+            "race": self.race.value if isinstance(self.race, Race) else self.race,
+            "clan": self.clan.value if isinstance(self.clan, Clan) else self.clan,
+            "orientation": self.orientation.value if isinstance(self.orientation, Orientation) else self.orientation,
+            "height": self.height,
+            "age": self.age,
+            "mare": self.mare
+        }
+    
 ################################################################################

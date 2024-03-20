@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Tuple, Any
+from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Tuple, Any, Dict
 
 from discord import Interaction, Embed, EmbedField
 
@@ -52,6 +52,18 @@ class ProfilePersonality(ProfileSection):
             dislikes=data[1],
             personality=data[2],
             aboutme=data[3]
+        )
+    
+################################################################################
+    @classmethod
+    def from_dict(cls: Type[PP], parent: Profile, data: Dict[str, Any]) -> PP:
+        
+        return cls(
+            parent=parent,
+            likes=data["likes"],
+            dislikes=data["dislikes"],
+            personality=data["personality"],
+            aboutme=data["aboutme"]
         )
     
 ################################################################################
@@ -142,7 +154,7 @@ class ProfilePersonality(ProfileSection):
         if is_likes:
             section_name = f"{BotEmojis.Check}  __Likes__"
             field_value = ("- " + "\n- ".join(self._likes)) if self.likes else str(NS)
-            field_value += f"\n{U.draw_line(extra=15)}"
+            field_value += f"\n{U.draw_line(extra=14)}"
         else:
             section_name = f"{BotEmojis.Cross}  __Dislikes__"
             field_value = ("- " + "\n- ".join(self._dislikes)) if self.dislikes else str(NS)
@@ -160,7 +172,7 @@ class ProfilePersonality(ProfileSection):
 
         return EmbedField(
             name=f"{BotEmojis.Goose}  __Personality__  {BotEmojis.Goose}",
-            value=f"{value}\n{U.draw_line(extra=15)}",
+            value=f"{value}\n{U.draw_line(extra=14)}",
             inline=False
         )
 
@@ -283,4 +295,14 @@ class ProfilePersonality(ProfileSection):
             )
         )
 
+################################################################################
+    def _to_dict(self) -> Dict[str, Any]:
+        
+        return {
+            "likes": self.likes,
+            "dislikes": self.dislikes,
+            "personality": self.personality,
+            "aboutme": self.aboutme
+        }
+    
 ################################################################################

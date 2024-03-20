@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from .Branch import DBWorkerBranch
 
 if TYPE_CHECKING:
-    pass
+    from Classes import Profile
 ################################################################################
 
 __all__ = ("DatabaseInserter",)

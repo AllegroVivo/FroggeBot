@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Optional, Any, Type, TypeVar, Dict, Tuple, List
 
 from discord import (
@@ -12,9 +13,12 @@ from discord import (
     TextChannel,
     Forbidden,
     EmbedField,
-    Message
+    Message,
+    File
 )
-from UI.Common.CloseMessageView import CloseMessageView
+
+from Assets import BotEmojis, BotImages
+from UI.Common import CloseMessageView, ConfirmCancelView
 from UI.Profiles import AdditionalImageCaptionModal, ProfilePreView
 from Utilities import (
     Utilities as U,
@@ -31,7 +35,6 @@ from .ProfileAtAGlance import ProfileAtAGlance
 from .ProfileDetails import ProfileDetails
 from .ProfileImages import ProfileImages
 from .ProfilePersonality import ProfilePersonality
-from Assets import BotEmojis, BotImages
 
 if TYPE_CHECKING:
     from Classes import ProfileManager, FroggeBot
@@ -98,6 +101,23 @@ class Profile:
         
         return self
         
+################################################################################
+    @classmethod
+    def from_dict(cls: Type[P], mgr: ProfileManager, user: User, data: Dict[str, Any]) -> P:
+        
+        self: P = cls.__new__(cls)
+        
+        self._mgr = mgr
+        self._user = user
+        self._id = mgr.bot.database.insert.profile(mgr.guild_id, user.id)
+        
+        self._details = ProfileDetails.from_dict(self, data["details"])
+        self._aag = ProfileAtAGlance.from_dict(self, data["aag"])
+        self._personality = ProfilePersonality.from_dict(self, data["personality"])
+        self._images = ProfileImages.from_dict(self, data["images"])
+        
+        return self
+    
 ################################################################################
     @property
     def bot(self) -> FroggeBot:
@@ -230,7 +250,7 @@ class Profile:
 ################################################################################
     async def post(self, interaction: Interaction, channel: TextChannel) -> None:
 
-        if self.char_name == str(NS):
+        if self.char_name is None:
             error = CharNameNotSetError()
             await interaction.response.send_message(embed=error, ephemeral=True)
             return
@@ -307,7 +327,7 @@ class Profile:
         if personality is not None:
             fields.append(personality)
         if additional_imgs is not None:
-            additional_imgs.value += U.draw_line(extra=15)
+            additional_imgs.value += U.draw_line(extra=14)
             fields.append(additional_imgs)
 
         main_profile = U.make_embed(
@@ -385,5 +405,62 @@ class Profile:
         await view.wait()
 
         return
+        
+################################################################################
+    async def export(self, interaction: Interaction) -> None:
+        
+        prompt = U.make_embed(
+            color=self.color,
+            title="Export Profile",
+            description=(
+                "Clicking the button below will export your profile to a file.\n\n"
+                
+                "To import this profile into another server, use the `/profile import` "
+                "command and provide it the file you receive."
+            )
+        
+        )
+        view = ConfirmCancelView(interaction.user)
+        
+        await interaction.respond(embed=prompt, view=view)
+        await view.wait()
+        
+        if not view.complete or view.value is False:
+            return
+
+        with open("profile.json", "w") as fp:
+            json.dump(self._to_dict(), fp)
+            
+        file = File("profile.json")
+        confirm = U.make_embed(
+            color=self.color,
+            title="Profile Exported",
+            description=(
+                "Your profile has been exported to the file above.\n"
+                "You can now download it and import it into another\n"
+                "server using the `/profile import` command!"
+            )
+        )
+        
+        await interaction.respond(embed=confirm, file=file)
+    
+################################################################################
+    def _to_dict(self) -> Dict[str, Any]:
+        
+        return {
+            "guild_id": self._mgr.guild_id,
+            "details": self._details._to_dict(),
+            "aag": self._aag._to_dict(),
+            "personality": self._personality._to_dict(),
+            "images": self._images._to_dict()
+        }
+    
+################################################################################
+    def update_all(self) -> None:
+        
+        self._details.update()
+        self._aag.update()
+        self._personality.update()
+        self._images.update()
         
 ################################################################################

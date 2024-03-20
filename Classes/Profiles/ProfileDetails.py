@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from discord import Colour, Embed, Interaction, EmbedField
-from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Tuple
+from discord import Colour, Embed, Interaction, EmbedField, Colour
+from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Tuple, Dict
 
 from Assets import BotEmojis
 from .ProfileSection import ProfileSection
@@ -62,10 +62,23 @@ class ProfileDetails(ProfileSection):
         )
     
 ################################################################################
+    @classmethod
+    def from_dict(cls: Type[PD], parent: Profile, data: Dict[str, Any]) -> PD:
+        
+        return cls(
+            parent=parent,
+            name=data["name"],
+            url=data["url"],
+            color=Colour(data["color"]) if data["color"] is not None else None,
+            jobs=data["jobs"] or [],
+            rates=data["rates"],
+        )
+    
+################################################################################
     @property
     def name(self) -> str:
         
-        return self._name or str(NS)
+        return self._name
     
 ################################################################################
     @name.setter
@@ -177,7 +190,7 @@ class ProfileDetails(ProfileSection):
 
         return U.make_embed(
             title="Profile Details",
-            color=self.color,
+            color=self.color or Colour.embed_background(),
             description=(
                 f"{U.draw_line(text=char_name)}\n"
                 f"{char_name}\n"
@@ -300,9 +313,21 @@ class ProfileDetails(ProfileSection):
             name=f"{BotEmojis.FlyingMoney} __Rates__ {BotEmojis.FlyingMoney}",
             value=(
                 f"{self.rates}\n"
-                f"{U.draw_line(extra=15)}"
+                f"{U.draw_line(extra=14)}"
             ),
             inline=False
         )
 
 ################################################################################
+    def _to_dict(self) -> Dict[str, Any]:
+        
+        return {
+            "name": self.name,
+            "url": self.url,
+            "color": self.color.value if self.color is not None else None,
+            "jobs": self.jobs,
+            "rates": self.rates,
+        }
+    
+################################################################################
+    
